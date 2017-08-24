@@ -27,7 +27,6 @@ class Lioness(object):
 
 		# init numpy arrays as none, and verify if function has
 		# excuted/executed correctly through their values
-
 		# x_train indicates a non-scaled x_df converted to a numpy array		
 		self.data['x_train'] = None
 		self.data['y_train'] = None
@@ -40,7 +39,7 @@ class Lioness(object):
 		self.data['x_train_index'] = None
 		self.data['y_train_index'] = None
 
- 		# xs_train indicates a scaled x_train
+		# xs_train indicates a scaled x_train
 		self.data['xs_train'] = None
 		self.data['ys_train'] = None
 		
@@ -63,11 +62,11 @@ class Lioness(object):
 		if isinstance(start, datetime.date):
 			self.dates['start'] = start
 		else:
-			self.start = datetime.datetime.strptime(start, '%Y-%M-%d').date()
+			self.dates['start'] = datetime.datetime.strptime(start, '%Y-%M-%d').date()
 		if isinstance(split, datetime.date):
 			self.dates['split'] = split
 		else:
-			self.split = datetime.datetime.strptime(split, '%Y-%M-%d').date()
+			self.dates['split'] = datetime.datetime.strptime(split, '%Y-%M-%d').date()
 		if isinstance(end, datetime.date):
 			self.dates['end'] = end
 		else:
@@ -116,7 +115,9 @@ class Lioness(object):
 			ys = self.scaler.fit_transform(y_np)
 
 			# reshape them as necessary, splitting them into training,validation
-			self.data['xs_train'], self.data['ys_train'] = xs[0:train_set_len], ys[0:train_set_len]
+			self.data['xs_train'] = xs[0:train_set_len]
+			self.data['ys_train'] = ys[0:train_set_len]
+
 			self.data['xs_val'] = xs[train_set_len:(train_set_len + val_set_len)]
 			self.data['ys_val'] = ys[train_set_len:(train_set_len + val_set_len)]
 
@@ -148,9 +149,10 @@ class Lioness(object):
 				self.shifted['X_index'].append(self.data['y_val_index'][i:(i + self.lookback), ])
 				self.shifted['Y'].append(self.data['y_val'][i + self.lookback, ])
 				self.shifted['Y_index'].append(self.data['y_val_index'][i + self.lookback, ])
- 		
- 		# Convert to numpy arrays
- 		self.shifted['X'] = np.array(self.shifted['X'])
+		
+		# Convert to numpy arrays
+
+		self.shifted['X'] = np.array(self.shifted['X'])
 		self.shifted['Y'] = np.array(self.shifted['Y'])
 		self.shifted['X_index'] = np.array(self.shifted['X_index'])
 		self.shifted['Y_index'] = np.array(self.shifted['Y_index'])
@@ -175,58 +177,56 @@ class Lioness(object):
 			if self.data['ys_train'] is not None:
 				if isinstance(self.data['ys_train'], self.pd.DataFrame):
 					local_y_train = self.data['ys_train'].values.astype('float32')
-					p1.line(self.data['ys_train_index'],
+					p1.line(self.data['y_train_index'],
 							local_ys_train.reshape(len(local_ys_train)),
 							color='#E08E79',
 							legend='ys_train')
 				else:  # if it's a np array
-					p1.line(self.data['ys_train'],
-							self.data['ys_train'].reshape(len(self.data['ys_train'])),
-								color='#E08E79',
-								legend='ys_train')
+					p1.line(self.data['y_train_index'],
+							local_y_train.reshape(len(self.data['ys_train'])),
+							color='#E08E79',
+							legend='ys_train')
 
 			# check if ys_val exists, and plot if yes
 			if self.data['ys_val'] is not None:
 				if isinstance(self.data['ys_val'], self.pd.DataFrame):
 					local_ys_val=self.data['ys_val'].values.astype('float32')
-					p1.line(self.data['ys_val_index'],
+					p1.line(self.data['y_val_index'],
 							local_ys_val.reshape(len(local_ys_val)),
 							color='#3B8686',
 							legend='ys_val')
 				else:  # if it's an np.array
-					p1.line(self.data['ys_val_index'],
-							self.ys_val.reshape(len(self.data['ys_val'])),
+					p1.line(self.data['y_val_index'],
+							local_ys_val.reshape(len(self.data['ys_val'])),
 							color='#3B8686',
 							legend='ys_val')
 
 		if self.scale == False:
-
 			if self.data['y_train'] is not None:
-				if isinstance(self.data['ys_train'], self.pd.DataFrame):
-					local_y_train=self.data['ys_train'].values.astype('float32')
-					p1.line(self.data['ys_train_index'],
+				if isinstance(self.data['y_train'], self.pd.DataFrame):
+					local_y_train=self.data['y_train'].values.astype('float32')
+					p1.line(self.data['y_train_index'],
 							local_y_train.reshape(len(local_y_train)),
 							color='#E08E79',
 							legend='y_train')
 				else:  # if it's an np.array
-					p1.line(self.data['ys_train_index'],
-							self.data['ys_train'].reshape(len(local_y_train)),
+					p1.line(self.data['y_train_index'],
+							local_y_train.reshape(len(local_y_train)),
 							color='#E08E79',
 							legend='y_train')
 
 			if self.data['y_val'] is not None:
-				if isinstance(self.data['ys_val'], self.pd.DataFrame):
-					local_y_val=self.data['ys_val'].values.astype('float32')
-					p1.line(self.data['ys_val_index'],
+				if isinstance(self.data['y_val'], self.pd.DataFrame):
+					local_y_val = self.data['y_val'].values.astype('float32')
+					p1.line(self.data['y_val_index'],
 							local_y_val.reshape(len(local_y_val)),
 							color='#3B8686',
 							legend='y_val')
 				else:  # if it's an np.array
-					p1.line(self.data['ys_val_index'],
-							self.data['ys_val_index'].reshape(len(local_y_val)),
+					p1.line(self.data['y_val_index'],
+							local_y_val.reshape(len(local_y_val)),
 							color='#3B8686',
 							legend='y_val')
-
 
 		# aesthetic mapping
 		p1.grid.grid_line_alpha=0.1
