@@ -17,7 +17,7 @@ class Lioness(object):
 		self.pd = pd
 		self.bokeh = bokeh
 
-		# instanciate each dataframe for self
+		# instantiate each dataframe for self
 		self.x_df = x_df
 		self.y_df = y_df
 		self.scale = scale
