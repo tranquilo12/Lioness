@@ -17,87 +17,108 @@ class Lioness(object):
 		self.pd = pd
 		self.bokeh = bokeh
 
-		# instantiate each dataframe for self
-		self.x_df = x_df
-		self.y_df = y_df
 		self.scale = scale
 		self.scaler = scaler
 
-		# init them as none, and check for them to verify if function has
-		# excuted/executed correctly
-		# xs_train indicates a scaled x_train
-		self.xs_train = None
-		self.ys_train = None
-		self.xs_val = None
-		self.ys_val = None
+		# instantiate each dataframe for self
+		self.data = {}
+		self.data['x_df'] = x_df
+		self.data['y_df'] = y_df
 
-		# somethings for the plotter
-		self.X = None
-		self.Y = None
-		self.X_index = None
-		self.Y_index = None
+		# init numpy arrays as none, and verify if function has
+		# excuted/executed correctly through their values
 
-		# x_train is just split without scaling
-		self.x_train = None
-		self.y_train = None
-		self.x_val = None
-		self.y_val = None
+		# x_train indicates a non-scaled x_df converted to a numpy array		
+		self.data['x_train'] = None
+		self.data['y_train'] = None
+		
+		self.data['x_val'] = None
+		self.data['y_val'] = None
 
 		# need indices for the split data
-		self.x_train_index = None
-		self.y_train_index = None
+		# use the same for scaled and non-scaled
+		self.data['x_train_index'] = None
+		self.data['y_train_index'] = None
 
+ 		# xs_train indicates a scaled x_train
+		self.data['xs_train'] = None
+		self.data['ys_train'] = None
+		
+		self.data['xs_val'] = None
+		self.data['ys_val'] = None
+
+		# somethings for the plotter
+		self.plotter = {}
+		self.plotter['X'] = None
+		self.plotter['Y'] = None
+		self.plotter['X_index'] = None
+		self.plotter['Y_index'] = None
+		
 		# variable for lookback
 		self.lookback = 1
-
+		
 		# check if start, split, end are datetime objects
+		self.dates = {}
+
 		if isinstance(start, datetime.date):
-			self.start = start
+			self.dates['start'] = start
 		else:
 			self.start = datetime.datetime.strptime(start, '%Y-%M-%d').date()
 		if isinstance(split, datetime.date):
-			self.split = split
+			self.dates['split'] = split
 		else:
 			self.split = datetime.datetime.strptime(split, '%Y-%M-%d').date()
 		if isinstance(end, datetime.date):
-			self.end = end
+			self.dates['end'] = end
 		else:
-			self.end = datetime.datetime.strptime(end, '%Y-%M-%d').date()
+			self.dates['end'] = datetime.datetime.strptime(end, '%Y-%M-%d').date()
 
 		# make sure an object can be instantiated
-		super(DataTamer, self).__init__()
+		# not sure super instantiation is needed
+		# super(DataTamer, self).__init__()
 
 	def split_data(self):
 		# split the dataframe, convert it to a numpy array and send it
 		# back with its indices
-		self.x_train, self.y_train = self.x_df[self.start:
-			self.split], self.y_df[self.start:self.split]
-		self.x_val, self.y_val = self.x_df[self.split:
-			self.end], self.y_df[self.split:self.end]
+		x_train = self.data['x_df'][self.dates['start']:self.dates['split']]
+		y_train = self.data['y_df'][self.dates['start']:self.dates['split']]
+		
+		self.data['x_train'] = x_train
+		self.data['y_train'] = y_train
+		
+		x_val = self.data['x_df'][self.dates['split']:self.dates['end']]
+		y_val = self.data['y_df'][self.dates['split']:self.dates['end']]
 
-		self.x_train_index = self.x_train.index.values
-		self.y_train_index = self.y_train.index.values
+		self.data['x_val'] = x_val 
+		self.data['y_val'] = y_val 
+		
+		self.data['x_train_index'] = x_train.index.values
+		self.data['y_train_index'] = y_train.index.values
 
-		self.x_val_index = self.x_val.index.values
-		self.y_val_index = self.y_val.index.values
+		self.data['x_val_index'] = x_val.index.values
+		self.data['y_val_index'] = y_val.index.values
 
 		# check if scaling is required, if not, dont use it
 		if self.scale == True:
 			# find the actual length of the date range
-			train_set_len = len(self.x_df[self.start:self.split])
-			val_set_len = len(self.y_df[self.split:self.end])
+			train_set_len = len(self.data['x_df'][self.date['start']:self.date['split']])
+			val_set_len = len(self.data['y_df'][self.date['start']:self.date['split']])
 
 			# convert the dataframes to numpy arrays
-			x_np, x_npIndex = self.x_df.values.astype('float32'), self.x_df.index.values
-			y_np, y_npIndex = self.y_df.values.astype('float32'), self.y_df.index.values
+			x_np = self.data['x_df'].values.astype('float32')
+			x_npIndex = self.data['x_df'].index.values
+
+			y_np = self.data['y_df'].values.astype('float32') 
+			y_npIndex = self.data['y_df'].index.values
 
 			# transform the numpy arrays, according to the scaler
-			xs, ys = self.scaler.fit_transform(x_np), self.scaler.fit_transform(y_np)
+			xs = self.scaler.fit_transform(x_np) 
+			ys = self.scaler.fit_transform(y_np)
 
 			# reshape them as necessary, splitting them into training,validation
-			self.xs_train, self.ys_train = xs[0:train_set_len], ys[0:train_set_len]
-			self.xs_val = xs[train_set_len:(train_set_len + val_set_len)]
-			self.ys_val = ys[train_set_len:(train_set_len + val_set_len)]
+			self.data['xs_train'], self.data['ys_train'] = xs[0:train_set_len], ys[0:train_set_len]
+			self.data['xs_val'] = xs[train_set_len:(train_set_len + val_set_len)]
+			self.data['ys_val'] = ys[train_set_len:(train_set_len + val_set_len)]
 
 		return(self)
 
@@ -127,15 +148,15 @@ class Lioness(object):
 				self.X_index.append(self.y_val_index[i:(i + self.lookback), ])
 				self.Y.append(self.y_val[i + self.lookback, ])
 				self.Y_index.append(y_val_index[i + self.lookback, ])
-
-		self.X = np.array(self.X)
+ 		
+ 		self.X = np.array(self.X)
 		self.Y = np.array(self.Y)
 		self.X_index = np.array(self.X_index)
 		self.Y_index = np.array(self.Y_index)
+		
 		return(self)
 
 	def bokplot(self, title='Placeholder'):
-
 		from bokeh.io import output_notebook
 		from bokeh.plotting import figure, show, output_file
 
