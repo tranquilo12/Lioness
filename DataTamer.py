@@ -48,11 +48,11 @@ class Lioness(object):
 		self.data['ys_val'] = None
 
 		# somethings for the plotter
-		self.plotter = {}
-		self.plotter['X'] = None
-		self.plotter['Y'] = None
-		self.plotter['X_index'] = None
-		self.plotter['Y_index'] = None
+		self.shifted = {}
+		self.shifted['X'] = None
+		self.shifted['Y'] = None
+		self.shifted['X_index'] = None
+		self.shifted['Y_index'] = None
 		
 		# variable for lookback
 		self.lookback = 1
@@ -128,38 +128,38 @@ class Lioness(object):
 		# but signify a shift in the rows of the data
 		# that is then split at that point
 		# here X=t, Y=t+1
-		self.X, self.Y = [], []
-		self.X_index, self.Y_index = [], []
+		self.shifted['X'], self.shifted['Y'] = [], []
+		self.shifted['X_index'], self.shifted['Y_index'] = [], []
 
 		if dataset == None:
-			print('No dataset mentioned')
+			print('No dataset mentioned (y_train, y_test)')
 			return(0)
 
 		if dataset == 'y_train':
-			for i in range(len(self.y_train) - self.lookback - 1):
-				self.X.append(self.y_train[i:(i + self.lookback), ])
-				self.X_index.append(self.y_train_index[i:(i + self.lookback), ])
-				self.Y.append(self.y_train[i + self.lookback, ])
-				self.Y_index.append(y_train_index[i + self.lookback, ])
+			for i in range(len(self.data['y_train']) - self.lookback - 1):
+				self.shifted['X'].append(self.data['y_train'][i:(i + self.lookback), ])
+				self.shifted['X_index'].append(self.data['y_train_index'][i:(i + self.lookback), ])
+				self.shifted['Y'].append(self.data['y_train'][i + self.lookback, ])
+				self.shifted['Y_index'].append(self.data['y_train_index'][i + self.lookback, ])
 
 		if dataset == 'y_val':
-			for i in range(len(self.y_val) - self.lookback - 1):
-				self.X.append(self.y_val[i:(i + self.lookback), ])
-				self.X_index.append(self.y_val_index[i:(i + self.lookback), ])
-				self.Y.append(self.y_val[i + self.lookback, ])
-				self.Y_index.append(y_val_index[i + self.lookback, ])
+			for i in range(len(self.data['y_val']) - self.lookback - 1):
+				self.shifted['X'].append(self.data['y_val'][i:(i + self.lookback), ])
+				self.shifted['X_index'].append(self.data['y_val_index'][i:(i + self.lookback), ])
+				self.shifted['Y'].append(self.data['y_val'][i + self.lookback, ])
+				self.shifted['Y_index'].append(self.data['y_val_index'][i + self.lookback, ])
  		
- 		self.X = np.array(self.X)
-		self.Y = np.array(self.Y)
-		self.X_index = np.array(self.X_index)
-		self.Y_index = np.array(self.Y_index)
+ 		# Convert to numpy arrays
+ 		self.shifted['X'] = np.array(self.shifted['X'])
+		self.shifted['Y'] = np.array(self.shifted['Y'])
+		self.shifted['X_index'] = np.array(self.shifted['X_index'])
+		self.shifted['Y_index'] = np.array(self.shifted['Y_index'])
 		
 		return(self)
 
 	def bokplot(self, title='Placeholder'):
 		from bokeh.io import output_notebook
 		from bokeh.plotting import figure, show, output_file
-
 		output_notebook()
 
 		p1 = figure(title=title,
