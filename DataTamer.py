@@ -172,58 +172,58 @@ class Lioness(object):
 		# use the same indices for both cases
 		if self.scale == True:
 			# check if ys_train exists, and plot if yes
-			if self.ys_train is not None:
-				if isinstance(self.ys_train, self.pd.DataFrame):
-					local_y_train = self.ys_train.values.astype('float32')
-					p1.line(self.y_train_index,
+			if self.data['ys_train'] is not None:
+				if isinstance(self.data['ys_train'], self.pd.DataFrame):
+					local_y_train = self.data['ys_train'].values.astype('float32')
+					p1.line(self.data['ys_train_index'],
 							local_ys_train.reshape(len(local_ys_train)),
 							color='#E08E79',
 							legend='ys_train')
 				else:  # if it's a np array
-					p1.line(self.y_train_index,
-							self.ys_train.reshape(len(self.ys_train)),
+					p1.line(self.data['ys_train'],
+							self.data['ys_train'].reshape(len(self.data['ys_train'])),
 								color='#E08E79',
 								legend='ys_train')
 
 			# check if ys_val exists, and plot if yes
-			if self.ys_val is not None:
-				if isinstance(self.ys_val, self.pd.DataFrame):
-					local_ys_val=self.ys_val.values.astype('float32')
-					p1.line(self.y_val_index,
+			if self.data['ys_val'] is not None:
+				if isinstance(self.data['ys_val'], self.pd.DataFrame):
+					local_ys_val=self.data['ys_val'].values.astype('float32')
+					p1.line(self.data['ys_val_index'],
 							local_ys_val.reshape(len(local_ys_val)),
 							color='#3B8686',
 							legend='ys_val')
 				else:  # if it's an np.array
-					p1.line(self.y_val_index,
-							self.ys_val.reshape(len(self.ys_val)),
+					p1.line(self.data['ys_val_index'],
+							self.ys_val.reshape(len(self.data['ys_val'])),
 							color='#3B8686',
 							legend='ys_val')
 
 		if self.scale == False:
 
-			if self.y_train is not None:
-				if isinstance(self.y_train, self.pd.DataFrame):
-					local_y_train=self.y_train.values.astype('float32')
-					p1.line(self.y_train_index,
+			if self.data['y_train'] is not None:
+				if isinstance(self.data['ys_train'], self.pd.DataFrame):
+					local_y_train=self.data['ys_train'].values.astype('float32')
+					p1.line(self.data['ys_train_index'],
 							local_y_train.reshape(len(local_y_train)),
 							color='#E08E79',
 							legend='y_train')
 				else:  # if it's an np.array
-					p1.line(self.y_train_index,
-							self.y_train.reshape(len(local_y_train)),
+					p1.line(self.data['ys_train_index'],
+							self.data['ys_train'].reshape(len(local_y_train)),
 							color='#E08E79',
 							legend='y_train')
 
-			if self.y_val is not None:
-				if isinstance(self.y_val, self.pd.DataFrame):
-					local_y_val=self.y_val.values.astype('float32')
-					p1.line(self.y_val_index,
+			if self.data['y_val'] is not None:
+				if isinstance(self.data['ys_val'], self.pd.DataFrame):
+					local_y_val=self.data['ys_val'].values.astype('float32')
+					p1.line(self.data['ys_val_index'],
 							local_y_val.reshape(len(local_y_val)),
 							color='#3B8686',
 							legend='y_val')
 				else:  # if it's an np.array
-					p1.line(self.y_val_index,
-							self.y_val.reshape(len(local_y_val)),
+					p1.line(self.data['ys_val_index'],
+							self.data['ys_val_index'].reshape(len(local_y_val)),
 							color='#3B8686',
 							legend='y_val')
 
