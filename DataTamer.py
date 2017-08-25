@@ -17,87 +17,109 @@ class Lioness(object):
 		self.pd = pd
 		self.bokeh = bokeh
 
-		# instantiate each dataframe for self
-		self.x_df = x_df
-		self.y_df = y_df
 		self.scale = scale
 		self.scaler = scaler
 
-		# init them as none, and check for them to verify if function has
-		# excuted/executed correctly
-		# xs_train indicates a scaled x_train
-		self.xs_train = None
-		self.ys_train = None
-		self.xs_val = None
-		self.ys_val = None
+		# instantiate each dataframe for self
+		self.data = {}
+		self.data['x_df'] = x_df
+		self.data['y_df'] = y_df
 
-		# somethings for the plotter
-		self.X = None
-		self.Y = None
-		self.X_index = None
-		self.Y_index = None
-
-		# x_train is just split without scaling
-		self.x_train = None
-		self.y_train = None
-		self.x_val = None
-		self.y_val = None
+		# init numpy arrays as none, and verify if function has
+		# excuted/executed correctly through their values
+		# x_train indicates a non-scaled x_df converted to a numpy array		
+		self.data['x_train'] = None
+		self.data['y_train'] = None
+		
+		self.data['x_val'] = None
+		self.data['y_val'] = None
 
 		# need indices for the split data
-		self.x_train_index = None
-		self.y_train_index = None
+		# use the same for scaled and non-scaled
+		self.data['x_train_index'] = None
+		self.data['y_train_index'] = None
 
+		# xs_train indicates a scaled x_train
+		self.data['xs_train'] = None
+		self.data['ys_train'] = None
+		
+		self.data['xs_val'] = None
+		self.data['ys_val'] = None
+
+		# somethings for the plotter
+		self.shifted = {}
+		self.shifted['X'] = None
+		self.shifted['Y'] = None
+		self.shifted['X_index'] = None
+		self.shifted['Y_index'] = None
+		
 		# variable for lookback
 		self.lookback = 1
-
+		
 		# check if start, split, end are datetime objects
+		self.dates = {}
+
 		if isinstance(start, datetime.date):
-			self.start = start
+			self.dates['start'] = start
 		else:
-			self.start = datetime.datetime.strptime(start, '%Y-%M-%d').date()
+			self.dates['start'] = datetime.datetime.strptime(start, '%Y-%M-%d').date()
 		if isinstance(split, datetime.date):
-			self.split = split
+			self.dates['split'] = split
 		else:
-			self.split = datetime.datetime.strptime(split, '%Y-%M-%d').date()
+			self.dates['split'] = datetime.datetime.strptime(split, '%Y-%M-%d').date()
 		if isinstance(end, datetime.date):
-			self.end = end
+			self.dates['end'] = end
 		else:
-			self.end = datetime.datetime.strptime(end, '%Y-%M-%d').date()
+			self.dates['end'] = datetime.datetime.strptime(end, '%Y-%M-%d').date()
 
 		# make sure an object can be instantiated
-		super(DataTamer, self).__init__()
+		# not sure super instantiation is needed
+		# super(DataTamer, self).__init__()
 
 	def split_data(self):
 		# split the dataframe, convert it to a numpy array and send it
 		# back with its indices
-		self.x_train, self.y_train = self.x_df[self.start:
-			self.split], self.y_df[self.start:self.split]
-		self.x_val, self.y_val = self.x_df[self.split:
-			self.end], self.y_df[self.split:self.end]
+		x_train = self.data['x_df'][self.dates['start']:self.dates['split']]
+		y_train = self.data['y_df'][self.dates['start']:self.dates['split']]
+		
+		self.data['x_train'] = x_train
+		self.data['y_train'] = y_train
+		
+		x_val = self.data['x_df'][self.dates['split']:self.dates['end']]
+		y_val = self.data['y_df'][self.dates['split']:self.dates['end']]
 
-		self.x_train_index = self.x_train.index.values
-		self.y_train_index = self.y_train.index.values
+		self.data['x_val'] = x_val 
+		self.data['y_val'] = y_val 
+		
+		self.data['x_train_index'] = x_train.index.values
+		self.data['y_train_index'] = y_train.index.values
 
-		self.x_val_index = self.x_val.index.values
-		self.y_val_index = self.y_val.index.values
+		self.data['x_val_index'] = x_val.index.values
+		self.data['y_val_index'] = y_val.index.values
 
 		# check if scaling is required, if not, dont use it
 		if self.scale == True:
 			# find the actual length of the date range
-			train_set_len = len(self.x_df[self.start:self.split])
-			val_set_len = len(self.y_df[self.split:self.end])
+			train_set_len = len(self.data['x_df'][self.date['start']:self.date['split']])
+			val_set_len = len(self.data['y_df'][self.date['start']:self.date['split']])
 
 			# convert the dataframes to numpy arrays
-			x_np, x_npIndex = self.x_df.values.astype('float32'), self.x_df.index.values
-			y_np, y_npIndex = self.y_df.values.astype('float32'), self.y_df.index.values
+			x_np = self.data['x_df'].values.astype('float32')
+			x_npIndex = self.data['x_df'].index.values
+
+			y_np = self.data['y_df'].values.astype('float32') 
+			y_npIndex = self.data['y_df'].index.values
 
 			# transform the numpy arrays, according to the scaler
-			xs, ys = self.scaler.fit_transform(x_np), self.scaler.fit_transform(y_np)
+			xs = self.scaler.fit_transform(x_np) 
+			ys = self.scaler.fit_transform(y_np)
 
 			# reshape them as necessary, splitting them into training,validation
-			self.xs_train, self.ys_train = xs[0:train_set_len], ys[0:train_set_len]
-			self.xs_val = xs[train_set_len:(train_set_len + val_set_len)]
-			self.ys_val = ys[train_set_len:(train_set_len + val_set_len)]
+			self.data['xs_train'] = xs[0:train_set_len]
+			self.data['ys_train'] = ys[0:train_set_len]
+
+			self.data['xs_val'] = xs[train_set_len:(train_set_len + val_set_len)]
+			self.data['ys_val'] = ys[train_set_len:(train_set_len + val_set_len)]
 
 		return(self)
 
@@ -107,38 +129,39 @@ class Lioness(object):
 		# but signify a shift in the rows of the data
 		# that is then split at that point
 		# here X=t, Y=t+1
-		self.X, self.Y = [], []
-		self.X_index, self.Y_index = [], []
+		self.shifted['X'], self.shifted['Y'] = [], []
+		self.shifted['X_index'], self.shifted['Y_index'] = [], []
 
 		if dataset == None:
-			print('No dataset mentioned')
+			print('No dataset mentioned (y_train, y_test)')
 			return(0)
 
 		if dataset == 'y_train':
-			for i in range(len(self.y_train) - self.lookback - 1):
-				self.X.append(self.y_train[i:(i + self.lookback), ])
-				self.X_index.append(self.y_train_index[i:(i + self.lookback), ])
-				self.Y.append(self.y_train[i + self.lookback, ])
-				self.Y_index.append(y_train_index[i + self.lookback, ])
+			for i in range(len(self.data['y_train']) - self.lookback - 1):
+				self.shifted['X'].append(self.data['y_train'][i:(i + self.lookback), ])
+				self.shifted['X_index'].append(self.data['y_train_index'][i:(i + self.lookback), ])
+				self.shifted['Y'].append(self.data['y_train'][i + self.lookback, ])
+				self.shifted['Y_index'].append(self.data['y_train_index'][i + self.lookback, ])
 
 		if dataset == 'y_val':
-			for i in range(len(self.y_val) - self.lookback - 1):
-				self.X.append(self.y_val[i:(i + self.lookback), ])
-				self.X_index.append(self.y_val_index[i:(i + self.lookback), ])
-				self.Y.append(self.y_val[i + self.lookback, ])
-				self.Y_index.append(y_val_index[i + self.lookback, ])
+			for i in range(len(self.data['y_val']) - self.lookback - 1):
+				self.shifted['X'].append(self.data['y_val'][i:(i + self.lookback), ])
+				self.shifted['X_index'].append(self.data['y_val_index'][i:(i + self.lookback), ])
+				self.shifted['Y'].append(self.data['y_val'][i + self.lookback, ])
+				self.shifted['Y_index'].append(self.data['y_val_index'][i + self.lookback, ])
+		
+		# Convert to numpy arrays
 
-		self.X = np.array(self.X)
-		self.Y = np.array(self.Y)
-		self.X_index = np.array(self.X_index)
-		self.Y_index = np.array(self.Y_index)
+		self.shifted['X'] = np.array(self.shifted['X'])
+		self.shifted['Y'] = np.array(self.shifted['Y'])
+		self.shifted['X_index'] = np.array(self.shifted['X_index'])
+		self.shifted['Y_index'] = np.array(self.shifted['Y_index'])
+		
 		return(self)
 
 	def bokplot(self, title='Placeholder'):
-
 		from bokeh.io import output_notebook
 		from bokeh.plotting import figure, show, output_file
-
 		output_notebook()
 
 		p1 = figure(title=title,
@@ -151,61 +174,59 @@ class Lioness(object):
 		# use the same indices for both cases
 		if self.scale == True:
 			# check if ys_train exists, and plot if yes
-			if self.ys_train is not None:
-				if isinstance(self.ys_train, self.pd.DataFrame):
-					local_y_train = self.ys_train.values.astype('float32')
-					p1.line(self.y_train_index,
+			if self.data['ys_train'] is not None:
+				if isinstance(self.data['ys_train'], self.pd.DataFrame):
+					local_y_train = self.data['ys_train'].values.astype('float32')
+					p1.line(self.data['y_train_index'],
 							local_ys_train.reshape(len(local_ys_train)),
 							color='#E08E79',
 							legend='ys_train')
 				else:  # if it's a np array
-					p1.line(self.y_train_index,
-							self.ys_train.reshape(len(self.ys_train)),
-								color='#E08E79',
-								legend='ys_train')
+					p1.line(self.data['y_train_index'],
+							local_y_train.reshape(len(self.data['ys_train'])),
+							color='#E08E79',
+							legend='ys_train')
 
 			# check if ys_val exists, and plot if yes
-			if self.ys_val is not None:
-				if isinstance(self.ys_val, self.pd.DataFrame):
-					local_ys_val=self.ys_val.values.astype('float32')
-					p1.line(self.y_val_index,
+			if self.data['ys_val'] is not None:
+				if isinstance(self.data['ys_val'], self.pd.DataFrame):
+					local_ys_val=self.data['ys_val'].values.astype('float32')
+					p1.line(self.data['y_val_index'],
 							local_ys_val.reshape(len(local_ys_val)),
 							color='#3B8686',
 							legend='ys_val')
 				else:  # if it's an np.array
-					p1.line(self.y_val_index,
-							self.ys_val.reshape(len(self.ys_val)),
+					p1.line(self.data['y_val_index'],
+							local_ys_val.reshape(len(self.data['ys_val'])),
 							color='#3B8686',
 							legend='ys_val')
 
 		if self.scale == False:
-
-			if self.y_train is not None:
-				if isinstance(self.y_train, self.pd.DataFrame):
-					local_y_train=self.y_train.values.astype('float32')
-					p1.line(self.y_train_index,
+			if self.data['y_train'] is not None:
+				if isinstance(self.data['y_train'], self.pd.DataFrame):
+					local_y_train=self.data['y_train'].values.astype('float32')
+					p1.line(self.data['y_train_index'],
 							local_y_train.reshape(len(local_y_train)),
 							color='#E08E79',
 							legend='y_train')
 				else:  # if it's an np.array
-					p1.line(self.y_train_index,
-							self.y_train.reshape(len(local_y_train)),
+					p1.line(self.data['y_train_index'],
+							local_y_train.reshape(len(local_y_train)),
 							color='#E08E79',
 							legend='y_train')
 
-			if self.y_val is not None:
-				if isinstance(self.y_val, self.pd.DataFrame):
-					local_y_val=self.y_val.values.astype('float32')
-					p1.line(self.y_val_index,
+			if self.data['y_val'] is not None:
+				if isinstance(self.data['y_val'], self.pd.DataFrame):
+					local_y_val = self.data['y_val'].values.astype('float32')
+					p1.line(self.data['y_val_index'],
 							local_y_val.reshape(len(local_y_val)),
 							color='#3B8686',
 							legend='y_val')
 				else:  # if it's an np.array
-					p1.line(self.y_val_index,
-							self.y_val.reshape(len(local_y_val)),
+					p1.line(self.data['y_val_index'],
+							local_y_val.reshape(len(local_y_val)),
 							color='#3B8686',
 							legend='y_val')
-
 
 		# aesthetic mapping
 		p1.grid.grid_line_alpha=0.1
